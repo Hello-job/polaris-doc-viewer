@@ -1,0 +1,10 @@
+import React from 'react';
+import { DocRenderer } from '../../types';
+import ImageProxyRenderer from '../image';
+
+const JPGRenderer: DocRenderer = (props) => <ImageProxyRenderer {...props} />;
+
+JPGRenderer.fileTypes = ['jpg', 'jpeg', 'image/jpg', 'image/jpeg', 'png'];
+JPGRenderer.weight = 0;
+
+export default JPGRenderer;
