@@ -42,7 +42,7 @@ export interface IDocument {
   uri: string;
   fileType?: string;
   fileData?: string | ArrayBuffer;
-  suffix?: string;
+  suffix: string;
   resourceType?: number;
   type?: number;
   name?: string;

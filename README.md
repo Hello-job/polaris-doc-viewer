@@ -58,8 +58,8 @@ import DocViewer from "polaris-doc-viewer";
 
 function App() {
   const docs = [
-    { uri: "https://url-to-my-pdf.pdf" },
-    { uri: require("./example-files/pdf.pdf") }, // Local File
+    { uri: "https://url-to-my-pdf.pdf", suffix: 'pdf' },
+    { uri: require("./example-files/pdf.pdf"), suffix: 'pdf'  }, // Local File
   ];
 
   return <DocViewer documents={docs} />;
