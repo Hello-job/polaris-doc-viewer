@@ -5,5 +5,6 @@ import ImageProxyRenderer from '../image';
 const BMPRenderer: DocRenderer = (props) => <ImageProxyRenderer {...props} />;
 BMPRenderer.fileTypes = ['bmp', 'image/bmp'];
 BMPRenderer.weight = 0;
+BMPRenderer.fileLoader = ImageProxyRenderer.fileLoader;
 
 export default BMPRenderer;

@@ -2,7 +2,7 @@ import React, { useContext, useMemo, FC, useRef, useEffect, useState } from 'rea
 import styled from 'styled-components';
 import { setFileNo } from '../../state/actions';
 import { DocViewerContext } from '../../state';
-import { FileIcon } from 'polaris-react-component'
+import { FileIcon } from '../FileIcon';
 
 interface ItemProps {
   active: boolean;

@@ -2,7 +2,6 @@ import React from 'react';
 import styled from 'styled-components';
 import { DocRenderer } from '../../types';
 import ImageProxyRenderer from '../image';
-import { imgType } from 'polaris-react-component';
 
 const StyledImageRenderer = styled(ImageProxyRenderer)`
   display: flex;
@@ -22,7 +21,8 @@ const StyledImageRenderer = styled(ImageProxyRenderer)`
 
 const PNGRenderer: DocRenderer = (props) => <StyledImageRenderer {...props} />;
 
-PNGRenderer.fileTypes = imgType;
+PNGRenderer.fileTypes = ['png', 'image/png', 'webp', 'image/webp', 'svg', 'image/svg+xml'];
+PNGRenderer.fileLoader = ({ fileLoaderComplete }) => fileLoaderComplete();
 PNGRenderer.weight = 0;
 
 export default PNGRenderer;

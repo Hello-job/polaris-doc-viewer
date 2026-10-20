@@ -32,7 +32,7 @@ export default CloudDocRenderer;
 
 CloudDocRenderer.fileTypes = ['link'];
 CloudDocRenderer.weight = 0;
-// CloudDocRenderer.fileLoader = ({ fileLoaderComplete }) => fileLoaderComplete();
+CloudDocRenderer.fileLoader = ({ fileLoaderComplete }) => fileLoaderComplete();
 
 const Container = styled.div`
   width: 100%;
