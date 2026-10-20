@@ -3,7 +3,8 @@ import { LinkButton } from './common';
 import styled from 'styled-components';
 import { IStyledProps } from '../types';
 import { DocViewerContext } from '../state';
-import { FileIcon } from 'polaris-react-component';
+import { FileIcon } from './FileIcon';
+import { getDocumentExtension } from '../utils/fileTypes';
 import { useTranslation } from 'react-i18next';
 
 const NotRender = () => {
@@ -14,9 +15,11 @@ const NotRender = () => {
     <Contanier>
       <Content>
         <div className="notFileIcon">
-          <FileIcon {...(currentDocument as any)} />
+          {currentDocument && <FileIcon {...currentDocument} />}
         </div>
-        <div className="title">.{currentDocument?.suffix} {t('notPreview')}</div>
+        <div className="title">
+          {currentDocument && getDocumentExtension(currentDocument)} {t('notPreview')}
+        </div>
         <div className="desc">{t('localDown')}</div>
         <DownloadButton
           id="no-renderer-download"
@@ -53,9 +56,7 @@ const Content = styled.div`
   }
   .notFileIcon {
     margin-bottom: 30px;
-    .pol-enclosure-icon{
-      font-size:  100px;
-    }
+    font-size: 100px;
   }
   .title {
     color: ${(props) => props.theme.text_primary};

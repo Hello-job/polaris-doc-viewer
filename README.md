@@ -8,7 +8,7 @@
 | Extension | MIME Type                                                                          | Available |
 | --------- | ---------------------------------------------------------------------------------- | --------- |
 | bmp       | image/bmp                                                                          | `✓`       |
-| doc       | application/msword                                                                 | `✓`       |
+| doc       | application/msword                                                                 | 需先转换为 docx 或 PDF |
 | docx      | application/vnd.openxmlformats-officedocument.wordprocessingml.document            | `✓`       |
 | htm       | text/htm                                                                           | `✓`       |
 | html      | text/html                                                                          | `✓`       |
@@ -17,7 +17,7 @@
 | pdf       | application/pdf                                                                    | `✓`       |
 | png       | image/png                                                                          | `✓`       |
 | ppt       | application/vnd.ms-powerpoint                                                      | `✓`       |
-| pptx      | applicatiapplication/vnd.openxmlformats-officedocument.presentationml.presentation | `✓`       |
+| pptx      | application/vnd.openxmlformats-officedocument.presentationml.presentation | `✓`       |
 | tiff      | image/tiff                                                                         | `✓`       |
 | txt       | text/plain                                                                         | `✓`       |
 | xls       | application/vnd.ms-excel                                                           | `✓`       |
@@ -50,8 +50,17 @@
 
 ### Basic
 
-DocViewer至少需要一个文档对象数组才能起作用。
-每个文档对象必须有一个指向文件的uri，可以是返回文件的url，也可以是返回本地文件的url
+DocViewer 至少需要一个文档对象数组才能起作用。每个文档对象必须提供 `uri`。组件优先使用显式的 `fileType`，否则通过 `suffix` 或 URL 中的扩展名选择渲染器；URL 的查询参数、片段和大写扩展名均可识别。无扩展名的下载地址也可以通过 `name` 提供文件名。
+
+```tsx
+const docs = [
+  { uri: 'https://example.com/image.svg' },
+  { uri: 'https://example.com/download/123', suffix: 'pdf' },
+  { uri: 'blob:...', fileType: 'image/png' },
+];
+```
+
+URL、文件名都无法识别类型时，组件会尝试 `HEAD` 请求读取 MIME 类型；请求失败后显示无法预览的提示和下载入口。
 
 ```tsx
 import DocViewer from "polaris-doc-viewer";
@@ -338,7 +347,9 @@ const myHeader: IHeaderOverride = (state, previousDocument, nextDocument) => {
 | name      | type     |
 | --------- | -------- |
 | uri       | `string` |
-| fileType? | `string` |
+| fileType? | `string` — 显式指定扩展名或 MIME 类型 |
+| suffix? | `string` — URL 无扩展名时可提供后缀 |
+| name? | `string` — 显示名称，也可用于推断扩展名 |
 | fileData? | `string  | ArrayBuffer` - **Used Internally - Ignored if passed into props** |
 
 ---
@@ -441,3 +452,27 @@ const myHeader: IHeaderOverride = (state, previousDocument, nextDocument) => {
 | config?          | [`IConfig`](#iconfig)       |
 
 ---
+
+
+## 维护与兼容性
+
+使用仓库锁文件安装和检查：
+
+```bash
+pnpm install --frozen-lockfile
+pnpm test --watchAll=false --runInBand
+pnpm run build
+```
+
+组件自带文件图标和文件来源常量，使用方无需再安装 `polaris-react-component` 或 `polaris-icon`。依赖树也不再通过内部组件库引入 Moment、Ant Design 或 `react-virtualized`，对应 Issue [#2](https://github.com/Hello-job/polaris-doc-viewer/issues/2)、[#5](https://github.com/Hello-job/polaris-doc-viewer/issues/5)、[#8](https://github.com/Hello-job/polaris-doc-viewer/issues/8)。播放器使用 ArtPlayer 的 legacy 构建，兼容旧版 Webpack 对 JavaScript 语法的解析（[#1](https://github.com/Hello-job/polaris-doc-viewer/issues/1)）。
+
+### 第三方地址与跨域
+
+普通图片直接使用浏览器的 `img` 加载；图片地址可识别时不发送额外的 `HEAD` 或文件 `fetch` 请求。SVG 支持 `svg` 和 `image/svg+xml`，也可以省略 `suffix`（[#4](https://github.com/Hello-job/polaris-doc-viewer/issues/4)）。视频和云文档同样交给播放器或 iframe 加载。
+
+PDF、TXT、DOCX 等需要 JavaScript 读取文件内容的格式，第三方服务器仍需允许跨域访问；否则应通过业务服务端代理文件请求。前端组件无法绕过浏览器的 CORS 限制。iframe 还可能受到对方站点的 `X-Frame-Options` / CSP 限制（[#3](https://github.com/Hello-job/polaris-doc-viewer/issues/3)）。
+
+### 暂未解决的兼容性问题
+
+- [#6 React 版本](https://github.com/Hello-job/polaris-doc-viewer/issues/6)：本次保持 React 16 的兼容范围；`react-pdf@5.0.0` 的 peer dependency 也只声明支持 React 16。支持 React 18/19 需要升级 PDF 渲染器并验证整套插件，不能只放宽版本声明。
+- [#7 旧版 .doc](https://github.com/Hello-job/polaris-doc-viewer/issues/7)：当前 Word 渲染器基于 DOCX/ZIP 解析，无法解析二进制 `.doc`。需要在服务端先转换成 `.docx` 或 PDF，并向组件提供转换后的 URL 和类型；仅修改文件扩展名不会转换文件格式。

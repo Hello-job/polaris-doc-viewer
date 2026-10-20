@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react';
+import { useContext } from 'react';
 import { DocViewerContext } from '../state';
 import { DocRenderer } from '../types';
 
@@ -9,35 +9,13 @@ export const useRendererSelector = (): {
     state: { currentDocument, pluginRenderers },
   } = useContext(DocViewerContext);
 
-  const [CurrentRenderer, setCurrentRenderer] = useState<DocRenderer | null | undefined>();
+  const fileType = currentDocument?.fileType;
+  if (!fileType) return { CurrentRenderer: undefined };
 
-  useEffect(() => {
-    if (!currentDocument) return;
+  const matchingRenderers = pluginRenderers?.filter((renderer) =>
+    renderer.fileTypes.includes(fileType)
+  );
+  const [CurrentRenderer] = (matchingRenderers || []).sort((a, b) => b.weight - a.weight);
 
-
-    if (!currentDocument.fileType) {
-      setCurrentRenderer(undefined);
-      return;
-    }
-
-    const matchingRenderers: DocRenderer[] = [];
-
-    pluginRenderers?.map((r) => {
-      if (currentDocument.fileType === undefined) return;
-      if (r.fileTypes.indexOf(currentDocument.fileType) >= 0 ) {
-        matchingRenderers.push(r);
-      }
-    });
-
-    // 按照权重进行渲染
-    const [SelectedRenderer] = matchingRenderers.sort((a, b) => b.weight - a.weight);
-
-    if (SelectedRenderer && SelectedRenderer !== undefined) {
-      setCurrentRenderer(() => SelectedRenderer);
-    } else {
-      setCurrentRenderer(null);
-    }
-  }, [currentDocument]);
-
-  return { CurrentRenderer };
+  return { CurrentRenderer: CurrentRenderer || null };
 };

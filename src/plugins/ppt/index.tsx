@@ -2,6 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import { DocRenderer } from '../../types';
 import FileViewer from 'polaris-offices-viewer';
+import { getDocumentExtension } from '../../utils/fileTypes';
 
 const MSDocRenderer: DocRenderer = ({ mainState: { currentDocument } }) => {
 
@@ -10,7 +11,7 @@ const MSDocRenderer: DocRenderer = ({ mainState: { currentDocument } }) => {
   return (
     <Container id="msdoc-renderer">
       <FileViewer 
-        fileType={currentDocument.suffix}
+        fileType={getDocumentExtension(currentDocument)}
         filePath={currentDocument?.uri}
         errorComponent={<>errorc错误</>} 
       />

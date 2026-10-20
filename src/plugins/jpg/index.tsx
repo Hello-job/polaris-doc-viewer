@@ -6,5 +6,6 @@ const JPGRenderer: DocRenderer = (props) => <ImageProxyRenderer {...props} />;
 
 JPGRenderer.fileTypes = ['jpg', 'jpeg', 'image/jpg', 'image/jpeg', 'png'];
 JPGRenderer.weight = 0;
+JPGRenderer.fileLoader = ImageProxyRenderer.fileLoader;
 
 export default JPGRenderer;

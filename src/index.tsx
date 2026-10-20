@@ -69,7 +69,7 @@ export { default as ImageProxyRenderer } from './plugins/image'
 export { default as JPGRenderer } from './plugins/jpg';
 export { default as MSDocRenderer } from './plugins/ppt'
 export { default as MSGRenderer } from './plugins/msg';
-export { default as PDFRenderer } from './plugins/png';
+export { default as PDFRenderer } from './plugins/pdf';
 export { default as PNGRenderer } from './plugins/png';
 export { default as TIFFRenderer } from './plugins/tiff';
 export { default as TXTRenderer } from './plugins/txt';

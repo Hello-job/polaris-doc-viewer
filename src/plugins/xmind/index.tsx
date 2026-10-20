@@ -29,7 +29,7 @@ const XmindRenderer: DocRenderer = ({ mainState: { currentDocument } }) => {
 
 export default XmindRenderer;
 
-XmindRenderer.fileTypes = ['xmind', 'application/octet-stream', 'application/vnd.xmind.workbook'];
+XmindRenderer.fileTypes = ['xmind', 'application/vnd.xmind.workbook'];
 XmindRenderer.weight = 0;
 
 const Container = styled.div`

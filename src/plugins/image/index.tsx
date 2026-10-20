@@ -21,6 +21,7 @@ export default ImageProxyRenderer;
 
 ImageProxyRenderer.fileTypes = [];
 ImageProxyRenderer.weight = 0;
+ImageProxyRenderer.fileLoader = ({ fileLoaderComplete }) => fileLoaderComplete();
 
 const Container = styled.div`
   display: flex;

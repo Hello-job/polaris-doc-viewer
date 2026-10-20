@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { DownloadIcon } from './icons/downLoad';
 import { IStyledProps } from '../types';
 import { DocViewerContext } from '../state';
-import { FileSourceType } from 'polaris-react-component';
+import { FileSourceType } from '../utils/fileTypes';
 import { useTranslation } from 'react-i18next';
 
 const DownLoad = () => {

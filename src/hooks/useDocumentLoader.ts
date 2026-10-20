@@ -4,8 +4,8 @@ import { MainStateActions, setDocumentLoading, updateCurrentDocument } from '../
 import { IMainState } from '../state/reducer';
 import { DocRenderer } from '../types';
 import { defaultFileLoader, FileLoaderComplete } from '../utils/fileLoaders';
+import { FileSourceType, getDocumentExtension } from '../utils/fileTypes';
 import { useRendererSelector } from './useRendererSelector';
-import { FileSourceType, imgType } from 'polaris-react-component'
 
 export const useDocumentLoader = (): {
   state: IMainState;
@@ -13,82 +13,65 @@ export const useDocumentLoader = (): {
   CurrentRenderer: DocRenderer | null | undefined;
 } => {
   const { state, dispatch } = useContext(DocViewerContext);
-  const { currentFileNo, currentDocument } = state;
-
+  const { currentFileNo, currentDocument, pluginRenderers } = state;
   const { CurrentRenderer } = useRendererSelector();
-
   const documentURI = currentDocument?.uri || '';
 
-  const handleUpdateCurrentDocument = (fileType?: string) => {
-    if (!currentDocument) return;
-    dispatch(
-      updateCurrentDocument({
-        ...currentDocument,
-        fileType: fileType || undefined,
+  useEffect(() => {
+    if (!currentDocument || currentDocument.fileType) return;
+
+    const suffix = getDocumentExtension(currentDocument);
+    const updateFileType = (fileType: string) => {
+      dispatch(updateCurrentDocument({ ...currentDocument, fileType }));
+    };
+
+    if (currentDocument.resourceType === FileSourceType.FS) {
+      updateFileType('link');
+      return;
+    }
+
+    // Known extensions can be selected without a cross-origin HEAD request.
+    if (suffix && pluginRenderers?.some((renderer) => renderer.fileTypes.includes(suffix))) {
+      updateFileType(suffix);
+      return;
+    }
+
+    const controller = new AbortController();
+    fetch(currentDocument.uri, { method: 'HEAD', signal: controller.signal })
+      .then((response) => {
+        if (controller.signal.aborted) return;
+        const contentType = response.headers
+          .get('content-type')
+          ?.split(';')[0]
+          .trim()
+          .toLowerCase();
+        updateFileType(
+          response.ok && contentType && contentType !== 'application/octet-stream'
+            ? contentType
+            : suffix || 'application/octet-stream'
+        );
       })
-    );
-  }
+      .catch(() => {
+        if (!controller.signal.aborted) updateFileType(suffix || 'application/octet-stream');
+      });
 
-  useEffect(
-    () => {
-      if (!currentDocument) return;
-      if (currentDocument.fileType !== undefined) return;
-
-      const controller = new AbortController();
-      const { signal } = controller;
-     
-      
-      if (currentDocument.resourceType === FileSourceType.FS) {
-        handleUpdateCurrentDocument('link')
-        return;
-      }
-
-      if (currentDocument.suffix && imgType.includes(currentDocument.suffix)) {
-        handleUpdateCurrentDocument('png')
-        return;
-      }
-
-      fetch(documentURI, { method: 'HEAD', signal }).then((response) => {
-        const contentTypeRaw = response.headers.get('content-type');
-        const contentTypes = contentTypeRaw?.split(';') || [];
-        let contentType = contentTypes.length ? contentTypes[0] : undefined;
-        // 临时方案
-        if(contentType === 'application/octet-stream' && currentDocument.suffix === 'sketch') {
-          contentType = 'sketch';
-        }
-        handleUpdateCurrentDocument(contentType)
-      }).catch(err => {
-        handleUpdateCurrentDocument(currentDocument.suffix)
-      })
-
-
-      return () => {
-        controller.abort();
-      };
-    },
-    [currentFileNo, documentURI]
-  );
+    return () => controller.abort();
+  }, [currentDocument, dispatch, pluginRenderers]);
 
   useEffect(() => {
     if (!currentDocument || CurrentRenderer === undefined) return;
     const controller = new AbortController();
     const { signal } = controller;
-    
+
     const fileLoaderComplete: FileLoaderComplete = (fileReader) => {
-      if (!currentDocument || !fileReader) {
-        dispatch(setDocumentLoading(false));
-        return;
-      }
+      if (signal.aborted) return;
 
-      let updatedDocument = { ...currentDocument };
-      if (fileReader.result !== null) {
-        updatedDocument.fileData = fileReader.result;
+      if (fileReader && fileReader.result !== null) {
+        dispatch(updateCurrentDocument({ ...currentDocument, fileData: fileReader.result }));
       }
-
-      dispatch(updateCurrentDocument(updatedDocument));
       dispatch(setDocumentLoading(false));
     };
-  
+
     if (CurrentRenderer === null) {
       dispatch(setDocumentLoading(false));
     } else if (CurrentRenderer.fileLoader !== undefined) {
@@ -97,10 +80,10 @@ export const useDocumentLoader = (): {
       defaultFileLoader({ documentURI, signal, fileLoaderComplete });
     }
 
-    return () => {
-      controller.abort();
-    };
-  }, [CurrentRenderer]);
+    return () => controller.abort();
+    // fileData updates must not start the same file request again.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [CurrentRenderer, currentFileNo, documentURI, dispatch]);
 
   return { state, dispatch, CurrentRenderer };
 };
